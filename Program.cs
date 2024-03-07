@@ -48,7 +48,7 @@ namespace Chord
             }
         }
 
-        public static List<Resource> FillResourcesDictionary(string[] vect, int numberNodes)
+        static List<Resource> FillResourcesDictionary(string[] vect, int numberNodes)
         {
             List<Resource> resources = new List<Resource>();
             foreach (string animal in vect)
