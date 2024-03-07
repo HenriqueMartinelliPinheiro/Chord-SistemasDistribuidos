@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+using System.Globalization;
+using System.Xml.Linq;
 
 namespace Chord
 {
@@ -17,7 +18,6 @@ namespace Chord
                 "Morcego", "Borboleta", "Abelha", "Formiga",
                 "Joaninha", "Libélula", "Lagarta"
             };
-
             int numberNodes = 10;
             List<Node> nodes = new List<Node>();
 
@@ -32,34 +32,30 @@ namespace Chord
                 nodes.Add(new Node(i + 1, status));
             }
 
+            List<Resource> resources = FillResourcesDictionary(animals, numberNodes);
+
             foreach (Node node in nodes)
             {
-                Console.WriteLine(node.ToString());
-            }
-            FillResourcesDictionary(animals, numberNodes);
-        }
-        public static Dictionary<string, int> FillResourcesDictionary(string[] vect, int numberNodes)
-        {
-            Dictionary<string, int> dictionary = new Dictionary<string, int>();
-            foreach (string animal in vect)
-            {
-                if (!dictionary.ContainsKey(animal))
+                foreach (Resource resource in resources)
                 {
-                    dictionary.Add(animal, GetHash(animal, numberNodes));
-                    Console.WriteLine("Hash: " + GetHash(animal, numberNodes) + " Animal: " + animal);
-                } 
+                    if (node.Id == resource.Hash)
+                    {
+                        node.AddResource(resource.Hash, resource.Value);
+                        Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
+                       " Recurso: " + resource.Value + " Hash: " + resource.Hash);
+                    }
+                }
             }
-            return dictionary;
         }
-        private static int GetHash(string value, int numberNodes)
+
+        public static List<Resource> FillResourcesDictionary(string[] vect, int numberNodes)
         {
-            int h = 0;
-            for (int i = 0; i < value.Length; i++)
-            {
-                h += value[i];
+            List<Resource> resources = new List<Resource>();
+            foreach (string animal in vect)
+            {   
+                resources.Add(new Resource(animal, numberNodes));
             }
-            return (h*31)%numberNodes;
+            return resources;
         }
     }
-
 }
