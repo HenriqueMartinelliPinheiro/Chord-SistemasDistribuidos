@@ -24,7 +24,7 @@ namespace Chord
             NodeReference = new Dictionary<int, int>();
             NextNode = null;
         }
-
+         
         public void AddResource(int hash, string resource)
         {
             this.Resource.Add(resource, hash);

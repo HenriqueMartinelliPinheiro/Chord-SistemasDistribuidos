@@ -47,7 +47,7 @@ namespace Chord
                 {
                     dictionary.Add(animal, GetHash(animal, numberNodes));
                     Console.WriteLine("Hash: " + GetHash(animal, numberNodes) + " Animal: " + animal);
-                }
+                } 
             }
             return dictionary;
         }
