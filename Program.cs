@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Resources;
 using System.Xml.Linq;
 
 namespace Chord
@@ -7,6 +8,51 @@ namespace Chord
     {
         static void Main()
         {
+            int numberNodes = 10;
+            List<Node> nodes;
+
+            InitializateList(out nodes, numberNodes);
+
+            FindNextNode(ref nodes, numberNodes);
+        }
+
+        static void FindNextNode(ref List<Node> nodes, int numberNodes)
+        {
+            Node? firstActiveNode = nodes.Find(node => node.Status == 1);
+            Node? previousNode = firstActiveNode;
+            int i = 0;
+            do
+            {
+                Node node = nodes[i];
+                if (node.Status == 1 && node != firstActiveNode) //node ativo
+                {
+                    if (previousNode != null)
+                    {
+                        previousNode.NextNode = node;
+                        previousNode = node;
+                    }
+                }
+
+                i++;
+            } while (nodes.Count > i);
+
+            if (previousNode!=null)
+            {
+                previousNode.NextNode = firstActiveNode;
+            }
+
+            foreach (Node node in nodes)
+            {
+                if (node.NextNode != null)
+                {
+                    Console.WriteLine("ID: " + node.Id + "Next Node: " + node.NextNode.Id);
+                }
+            }
+        }
+        static void InitializateList(out List<Node> nodes, int numberNodes)
+        {
+            nodes = new List<Node>();
+
             string[] animals = {
                 "Cachorro", "Gato", "Cavalo", "Vaca", "Porco",
                 "Ovelha", "Galinha", "Pato", "Coelho", "Rato",
@@ -18,14 +64,12 @@ namespace Chord
                 "Morcego", "Borboleta", "Abelha", "Formiga",
                 "Joaninha", "Libélula", "Lagarta"
             };
-            int numberNodes = 10;
-            List<Node> nodes = new List<Node>();
 
             for (int i = 0; i < numberNodes; i++)
             {
                 int status = 0;
 
-                if (i % 5 == 0)
+             if ((i+1) % 3 == 0)
                 {
                     status = 1;
                 }
@@ -33,7 +77,11 @@ namespace Chord
             }
 
             List<Resource> resources = FillResourcesDictionary(animals, numberNodes);
+            distributeResources(ref nodes, resources);
+        }
 
+        static void distributeResources(ref List<Node> nodes, List<Resource> resources)
+        {
             foreach (Node node in nodes)
             {
                 foreach (Resource resource in resources)
@@ -41,18 +89,17 @@ namespace Chord
                     if (node.Id == resource.Hash)
                     {
                         node.AddResource(resource.Hash, resource.Value);
-                        Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
-                       " Recurso: " + resource.Value + " Hash: " + resource.Hash);
+                       // Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
+                       //" Recurso: " + resource.Value + " Hash: " + resource.Hash);
                     }
                 }
             }
         }
-
         static List<Resource> FillResourcesDictionary(string[] vect, int numberNodes)
         {
             List<Resource> resources = new List<Resource>();
             foreach (string animal in vect)
-            {   
+            {
                 resources.Add(new Resource(animal, numberNodes));
             }
             return resources;
