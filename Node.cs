@@ -12,14 +12,14 @@ namespace Chord
         public int Status { get; set; }
         public Node? NextNode { get; set; }
 
-        public Dictionary<int, string> Resource { get; } //hash, value
+        public Dictionary<string,int> Resource { get; } //hash, value
         private Dictionary<int, int> NodeReference; // hashNode, idNode
 
 
         public Node(int id, int status)
         {
             Id = id;
-            Resource = new Dictionary<int, string>();
+            Resource = new Dictionary<string,int>();
             Status = status;
             NodeReference = new Dictionary<int, int>();
             NextNode = null;
@@ -27,7 +27,7 @@ namespace Chord
 
         public void AddResource(int hash, string resource)
         {
-            this.Resource.Add(hash, resource);
+            this.Resource.Add(resource, hash);
         }
 
         public override string ToString()
