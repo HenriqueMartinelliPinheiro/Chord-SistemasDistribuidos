@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,22 +12,22 @@ namespace Chord
         public int Status { get; set; }
         public Node? NextNode { get; set; }
 
-        private Dictionary<string, int> Resource; //hash, value
+        public Dictionary<int, string> Resource { get; } //hash, value
         private Dictionary<int, int> NodeReference; // hashNode, idNode
 
 
         public Node(int id, int status)
         {
             Id = id;
-            Resource = new Dictionary<string, int>();
+            Resource = new Dictionary<int, string>();
             Status = status;
             NodeReference = new Dictionary<int, int>();
             NextNode = null;
         }
-         
+
         public void AddResource(int hash, string resource)
         {
-            this.Resource.Add(resource, hash);
+            this.Resource.Add(hash, resource);
         }
 
         public override string ToString()
@@ -36,4 +36,3 @@ namespace Chord
         }
     }
 }
-
