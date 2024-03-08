@@ -10,11 +10,11 @@ namespace Chord
     {
         public int Hash { get; set; }
         public string Value { get; set; }
-    
-        public Resource(string value, int numberNodes) 
+
+        public Resource(string value, int numberNodes)
         {
-                Value = value;
-                Hash = GetHash(value,numberNodes);
+            Value = value;
+            Hash = GetHash(value, numberNodes);
         }
 
         public static int GetHash(string value, int numberNodes)
