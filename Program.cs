@@ -13,42 +13,44 @@ namespace Chord
 
             InitializateList(out nodes, numberNodes);
 
-            FindNextNode(ref nodes, numberNodes);
+            //FindNextNode(ref nodes);
+
+
         }
 
-        static void FindNextNode(ref List<Node> nodes, int numberNodes)
-        {
-            Node? firstActiveNode = nodes.Find(node => node.Status == 1);
-            Node? previousNode = firstActiveNode;
-            int i = 0;
-            do
-            {
-                Node node = nodes[i];
-                if (node.Status == 1 && node != firstActiveNode) //node ativo
-                {
-                    if (previousNode != null)
-                    {
-                        previousNode.NextNode = node;
-                        previousNode = node;
-                    }
-                }
+        //static void FindNextNode(ref List<Node> nodes)
+        //{
+        //    Node? firstActiveNode = nodes.Find(node => node.Status == 1);
+        //    Node? previousNode = firstActiveNode;
+        //    int i = 0;
+        //    do
+        //    {
+        //        Node node = nodes[i];
+        //        if (node.Status == 1 && node != firstActiveNode) //node ativo
+        //        {
+        //            if (previousNode != null)
+        //            {
+        //                previousNode.NextNode = node;
+        //                previousNode = node;
+        //            }
+        //        }
 
-                i++;
-            } while (nodes.Count > i);
+        //        i++;
+        //    } while (nodes.Count > i);
 
-            if (previousNode!=null)
-            {
-                previousNode.NextNode = firstActiveNode;
-            }
+        //    if (previousNode != null)
+        //    {
+        //        previousNode.NextNode = firstActiveNode;
+        //    }
 
-            foreach (Node node in nodes)
-            {
-                if (node.NextNode != null)
-                {
-                    Console.WriteLine("ID: " + node.Id + "Next Node: " + node.NextNode.Id);
-                }
-            }
-        }
+        //    foreach (Node node in nodes)
+        //    {
+        //        if (node.NextNode != null)
+        //        {
+        //            Console.WriteLine("ID: " + node.Id + "Next Node: " + node.NextNode.Id);
+        //        }
+        //    }
+        //}
         static void InitializateList(out List<Node> nodes, int numberNodes)
         {
             nodes = new List<Node>();
@@ -64,16 +66,37 @@ namespace Chord
                 "Morcego", "Borboleta", "Abelha", "Formiga",
                 "Joaninha", "Libélula", "Lagarta"
             };
-
+            Node previousNode =null;
+            Node firstNode = null;
             for (int i = 0; i < numberNodes; i++)
             {
+              
                 int status = 0;
 
-             if ((i+1) % 3 == 0)
+                if ((i + 1) % 3 == 0)
                 {
                     status = 1;
                 }
-                nodes.Add(new Node(i + 1, status));
+                Node node = new Node(i + 1, status);
+                nodes.Add(node);
+                node.PreviousNode = previousNode;
+
+                if (previousNode!=null)
+                {
+                    previousNode.NextNode = node;
+                }
+                previousNode = node;
+
+                if (i == 0)
+                {
+                    firstNode = node;
+                }
+
+                if (i==numberNodes-1 && firstNode!=null)
+                {
+                    node.NextNode = firstNode;
+                    firstNode.PreviousNode = node;
+                }
             }
 
             List<Resource> resources = FillResourcesDictionary(animals, numberNodes);
@@ -82,19 +105,38 @@ namespace Chord
 
         static void distributeResources(ref List<Node> nodes, List<Resource> resources)
         {
-            foreach (Node node in nodes)
+            foreach (Resource resource in resources)
             {
-                foreach (Resource resource in resources)
+                Node node = GetNodeById(resource.Hash, nodes);
+                node.AddResource(resource.Hash, resource.Value);
+                Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
+               " Recurso: " + resource.Value + " Hash: " + resource.Hash + " Next Node ID: " + node.NextNode.Id + " Previous Node ID: " + node.PreviousNode);
+            }
+        }
+
+        static void GetNodeReference(List<Node> nodes)
+        {
+            foreach(Node node in nodes)
+            {
+                if (node.Status==1)
                 {
-                    if (node.Id == resource.Hash)
-                    {
-                        node.AddResource(resource.Hash, resource.Value);
-                       // Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
-                       //" Recurso: " + resource.Value + " Hash: " + resource.Hash);
-                    }
+                    node.
                 }
             }
         }
+
+        static Node GetNodeById(int id, List<Node> nodes)
+        {
+            foreach (Node node in nodes)
+            {
+                if (node.Id == id)
+                {
+                    return node;
+                }
+            }
+            return null;
+        }
+
         static List<Resource> FillResourcesDictionary(string[] vect, int numberNodes)
         {
             List<Resource> resources = new List<Resource>();
