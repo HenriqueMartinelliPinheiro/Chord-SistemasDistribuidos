@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Chord
 {
@@ -35,14 +36,43 @@ namespace Chord
             Resource.Add(resource, hash);
         }
 
-        public override string ToString()
-        {
-            return "ID: " + Id + " Status: " + Status;
-        }
-
         public void AddNodeReferencence(Node node)
         {
             NodeReference.Add(node);
+        }
+
+        public List<Node> GetPreviousNodeReference(List<Node> nodeReference)
+        {
+            if (this != null && !Status)
+            {
+                if (this.PreviousNode!=null)
+                {
+                    nodeReference = this.PreviousNode.GetPreviousNodeReference(nodeReference);
+                }
+                nodeReference.Add(this);
+            }
+            return nodeReference;
+        }
+
+        public int GetNodeReference(Resource resource)
+        {
+            foreach (Node nodeReference in NodeReference)
+            {
+                if (nodeReference.Id == resource.Hash)
+                {
+                    return nodeReference.Id;
+                }
+            }
+            return 0;
+        }
+
+        public void GetNodesReference()
+        {
+            if (Status && PreviousNode != null)
+            {
+                AddNodeReferencence(this);
+                NodeReference =PreviousNode.GetPreviousNodeReference(NodeReference);
+            }
         }
     }
 }

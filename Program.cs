@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Resources;
 using System.Xml.Linq;
@@ -15,33 +16,98 @@ namespace Chord
             DefineActiveNodes(nodes);
             GetNodesReferences(nodes);
 
-            foreach (Node node in nodes)
+            Menu(nodes, numberNodes);
+
+        //    foreach (Node node in nodes)
+        //    {
+        //        Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
+        //        " Next Node ID: " + node.NextNode.Id + " Previous Node ID: " + node.PreviousNode.Id);
+
+        //        if (node.NextActiveNode!=null)
+        //        {
+        //            Console.WriteLine("Próximo Nodo Ativo ID:" + node.NextActiveNode.Id);
+        //        }
+
+        //        if (node.PreviousActiveNode!=null)
+        //        {
+        //            Console.WriteLine("Anterior Nodo Ativo ID:" + node.PreviousActiveNode.Id);
+        //        }
+        //        Console.WriteLine("\n\n");
+        //    }
+        }
+
+        static void Menu(List<Node> nodes, int numberNodes)
+        {
+            int op = -1;
+            while (op != 0)
             {
-                Console.WriteLine(" ID: "+ node.Id);
-                foreach (var nodeReference in node.NodeReference)
+                Console.WriteLine("1 - Encontrar Recurso");
+                Console.WriteLine("2 - Ativar Nodo");
+                Console.WriteLine("3 - Desativar Nodo");
+                Console.WriteLine("0 - Sair");
+                op = int.Parse(Console.ReadLine());
+
+                switch (op)
                 {
-                    Console.WriteLine(" Node Reference ID: " + nodeReference.Id);
+                    case 1:
+                        Console.WriteLine("Digite o recurso: ");
+                        string value = Console.ReadLine();
+
+                        (int id, value) = FindResource(value, nodes, numberNodes);
+
+                        if (id != 0)
+                        {
+                            Console.WriteLine("O recurso: " + value + " foi encontrado no nodo de ID: " + id);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Recurso não existe.");
+                        }
+
+                        break;
+
+                    case 2:
+                        Console.WriteLine("Digite o ID do Nodo que você deseja desativar: ");
+                        int idDisable = int.Parse(Console.ReadLine());
+
+                        DisableNode(idDisable, nodes);
+
+                        break;
+
+                    case 3:
+                        Console.WriteLine("Digite o ID do Nodo que você deseja ativar: ");
+                        int idEnable = int.Parse(Console.ReadLine());
+
+                        EnableNode(idEnable, nodes);
+
+                        break;
+                    default:
+                        break;
                 }
-                Console.WriteLine("\n");
-                //foreach (var resource in node.Resource)
-                //{
-
-                //    //Console.Write("ID: " + node.Id + " Status: " + node.Status +
-                //    //" Recurso: " + resource.Key + " Hash: " + resource.Value + " Next Node ID: " + node.NextNode.Id + " Previous Node ID: " + node.PreviousNode);
-
-                //    //if (node.NextActiveNode != null)
-                //    //{
-                //    //    Console.Write(" Next Active Node ID: " + node.NextActiveNode.Id);
-                //    //}
-
-                //    //if (node.PreviousActiveNode != null)
-                //    //{
-                //    //    Console.Write(" Previous Active Node ID: " + node.PreviousActiveNode.Id);
-                //    }
-                //    Console.WriteLine("\n");
-                //}
-                //Console.WriteLine("\n\n\n");
             }
+        }
+
+        static void DisableNode(int id, List<Node> nodes)
+        {
+            Node node = nodes.Find(node => node.Id == id);
+
+            if(node != null) {
+                node.Status = false;
+            }
+            node.NextActiveNode = null;
+            node.PreviousActiveNode = null; 
+            DefineActiveNodes(nodes);
+        }
+
+        static void EnableNode(int id, List<Node> nodes)
+        {
+            Node node = nodes.Find(node => node.Id == id);
+
+            if (node != null)
+            {
+                node.Status = true;
+            }
+            DefineActiveNodes(nodes);
         }
 
         static void InitializateList(out List<Node> nodes, int numberNodes)
@@ -59,6 +125,7 @@ namespace Chord
                 "Morcego", "Borboleta", "Abelha", "Formiga",
                 "Joaninha", "Libélula", "Lagarta", "Serpente", "Lontra"
             };
+
             Node previousNode = null;
             Node firstNode = null;
             for (int i = 0; i < numberNodes; i++)
@@ -69,6 +136,7 @@ namespace Chord
                 {
                     status = true;
                 }
+
                 Node node = new Node(i + 1, status);
                 nodes.Add(node);
                 node.PreviousNode = previousNode;
@@ -92,7 +160,7 @@ namespace Chord
             }
 
             List<Resource> resources = FillResourcesDictionary(animals, numberNodes);
-            distributeResources(nodes, resources);
+            DistributeResources(nodes, resources);
         }
 
         static void DefineActiveNodes(List<Node> nodes)
@@ -107,6 +175,42 @@ namespace Chord
             }
         }
 
+        static int FindResourceLocation(string value, List<Node> nodes, int numberNodes)
+        {
+            int id = 0;
+            Resource resource = new Resource(value, numberNodes);
+            foreach (Node node in nodes)
+            {
+                if (node.Status)
+                {
+                    id = node.GetNodeReference(resource);
+                    if (id!=0)
+                    {
+                        return id;
+                    }
+                }
+            }
+            return id;
+        }
+
+        static (int, string) FindResource(string value, List<Node> nodes, int numberNodes)
+        {
+            int nodeId = FindResourceLocation(value, nodes, numberNodes);
+
+            if (nodeId != 0)
+            {
+                Node node = nodes.Find(node => node.Id == nodeId);
+                foreach (var resource in node.Resource)
+                {
+                    if (resource.Key == value)
+                    {
+                        return (resource.Value, resource.Key);
+                    }
+                }
+            }
+            return (0, value);
+        }
+
         static Node DefineNextActiveNode(Node node)
         {
             if (node.NextNode != null && node.NextNode.Status)
@@ -119,7 +223,7 @@ namespace Chord
             }
             return null;
         }
-
+ 
         static Node DefinePreviousActiveNode(Node node)
         {
             if (node.PreviousNode != null && node.PreviousNode.Status)
@@ -133,14 +237,14 @@ namespace Chord
             return null;
         }
 
-        static void distributeResources(List<Node> nodes, List<Resource> resources)
+        static void DistributeResources(List<Node> nodes, List<Resource> resources)
         {
             foreach (Resource resource in resources)
             {
                 Node node = GetNodeById(resource.Hash, nodes);
                 node.AddResource(resource.Hash, resource.Value);
-                //Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
-                //" Recurso: " + resource.Value + " Hash: " + resource.Hash + " Next Node ID: " + node.NextNode.Id + " Previous Node ID: " + node.PreviousNode);
+                //Console.WriteLine("ID: " + node.Id + 
+                //" Recurso: " + resource.Value + " Hash: " + resource.Hash);
             }
         }
 
@@ -148,22 +252,12 @@ namespace Chord
         {
             foreach (Node node in nodes)
             {
-                if (node.Status && node.PreviousNode!=null)
+                if (node.Status && node.PreviousNode != null)
                 {
                     node.AddNodeReferencence(node);
-                    node.NodeReference = GetPreviousNodeReference(node.NodeReference,node.PreviousNode);
+                    node.NodeReference = node.PreviousNode.GetPreviousNodeReference(node.NodeReference);
                 }
             }
-        }
-
-        static List<Node> GetPreviousNodeReference(List<Node> nodeReference, Node node)
-        {
-            if (node!= null && !node.Status)
-            {
-                nodeReference.Add(node);
-                nodeReference = GetPreviousNodeReference(nodeReference, node.PreviousNode);
-            }
-            return nodeReference;
         }
 
         static Node GetNodeById(int id, List<Node> nodes)
