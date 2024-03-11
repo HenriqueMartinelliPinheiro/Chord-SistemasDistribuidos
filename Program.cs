@@ -13,37 +13,41 @@ namespace Chord
             List<Node> nodes;
 
             InitializateList(out nodes, numberNodes);
-            DefineActiveNodes(nodes);
             GetNodesReferences(nodes);
 
             Menu(nodes, numberNodes);
 
-        //    foreach (Node node in nodes)
-        //    {
-        //        Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
-        //        " Next Node ID: " + node.NextNode.Id + " Previous Node ID: " + node.PreviousNode.Id);
+            foreach (Node node in nodes)
+            {
+                Console.WriteLine("ID: " + node.Id + " Status: " + node.Status +
+                " Next Node ID: " + node.NextNode.Id + " Previous Node ID: " + node.PreviousNode.Id);
 
-        //        if (node.NextActiveNode!=null)
-        //        {
-        //            Console.WriteLine("Próximo Nodo Ativo ID:" + node.NextActiveNode.Id);
-        //        }
+                if (node.NextActiveNode != null)
+                {
+                    Console.WriteLine("Próximo Nodo Ativo ID:" + node.NextActiveNode.Id);
+                }
 
-        //        if (node.PreviousActiveNode!=null)
-        //        {
-        //            Console.WriteLine("Anterior Nodo Ativo ID:" + node.PreviousActiveNode.Id);
-        //        }
-        //        Console.WriteLine("\n\n");
-        //    }
+                if (node.PreviousActiveNode != null)
+                {
+                    Console.WriteLine("Anterior Nodo Ativo ID:" + node.PreviousActiveNode.Id);
+                }
+                Console.WriteLine("\n\n");
+            }
         }
-
+       /// <summary>
+       /// exibir interface
+       /// </summary>
+       /// <param name="nodes">lista de nodos do anel</param>
+       /// <param name="numberNodes">numero de nodos do anel</param>
         static void Menu(List<Node> nodes, int numberNodes)
         {
             int op = -1;
             while (op != 0)
             {
                 Console.WriteLine("1 - Encontrar Recurso");
-                Console.WriteLine("2 - Ativar Nodo");
-                Console.WriteLine("3 - Desativar Nodo");
+                Console.WriteLine("2 - Desativar Nodo");
+                Console.WriteLine("3 - Ativar Nodo");
+                Console.WriteLine("4 - Adicionar Recurso");
                 Console.WriteLine("0 - Sair");
                 op = int.Parse(Console.ReadLine());
 
@@ -52,18 +56,19 @@ namespace Chord
                     case 1:
                         Console.WriteLine("Digite o recurso: ");
                         string value = Console.ReadLine();
-
-                        (int id, value) = FindResource(value, nodes, numberNodes);
-
-                        if (id != 0)
+                        if (value!=null)
                         {
-                            Console.WriteLine("O recurso: " + value + " foi encontrado no nodo de ID: " + id);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Recurso não existe.");
-                        }
+                            (int id, value) = FindResource(value, nodes, numberNodes);
 
+                            if (id != 0)
+                            {
+                                Console.WriteLine("O recurso: " + value + " foi encontrado no nodo de ID: " + id);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Recurso não existe.");
+                            }
+                        }
                         break;
 
                     case 2:
@@ -81,35 +86,62 @@ namespace Chord
                         EnableNode(idEnable, nodes);
 
                         break;
+
+                    case 4:
+                        Console.WriteLine("Digite o recurso a ser inserido.");
+                        string addedValue = Console.ReadLine();
+                        if (addedValue!=null)
+                        {
+                            Resource resource = new Resource(addedValue, numberNodes);
+                            AddResource(GetNodeById(resource.Hash, nodes), resource.Hash, addedValue);
+                        }
+
+                        break;
+
                     default:
                         break;
                 }
             }
         }
-
+        /// <summary>
+        /// desativar nodo ativo do anel
+        /// </summary>
+        /// <param name="id">id do nodo a ser desativado</param>
+        /// <param name="nodes">lista de nodos do anel</param>
         static void DisableNode(int id, List<Node> nodes)
-        {
-            Node node = nodes.Find(node => node.Id == id);
-
-            if(node != null) {
-                node.Status = false;
-            }
-            node.NextActiveNode = null;
-            node.PreviousActiveNode = null; 
-            DefineActiveNodes(nodes);
-        }
-
-        static void EnableNode(int id, List<Node> nodes)
         {
             Node node = nodes.Find(node => node.Id == id);
 
             if (node != null)
             {
-                node.Status = true;
+                node.Status = false;
+                node.NextActiveNode = null;
+                node.PreviousActiveNode = null;
+                DefineActiveNodes(nodes);
             }
-            DefineActiveNodes(nodes);
+        }
+        /// <summary>
+        /// ativar nodo desativado do anel
+        /// </summary>
+        /// <param name="id">id do nodo a ser ativado</param>
+        /// <param name="nodes">lista de nodos do anel</param>
+        static void EnableNode(int id, List<Node> nodes)
+        {
+            Node node = nodes.Find(node => node.Id == id);
+            if (node != null)
+            {
+                node.Status = true;
+                DefineActiveNodes(nodes);
+            }
+            
         }
 
+        /// <summary>
+        /// inicializa a lista de nodos do anel, define os nodos sucessores e predecessores de cada um, preenche os nodos com
+        /// recursos, e define quais serão os nodos iniciais, além dos ponteiros dos próximos nodos ativos
+        /// </summary>
+        /// <param name="nodes">lista de nodos do anel</param>
+        /// <param name="numberNodes">numero de nodos do anel</param>
         static void InitializateList(out List<Node> nodes, int numberNodes)
         {
             nodes = new List<Node>();
@@ -161,20 +193,31 @@ namespace Chord
 
             List<Resource> resources = FillResourcesDictionary(animals, numberNodes);
             DistributeResources(nodes, resources);
+            DefineActiveNodes(nodes);
         }
 
+        /// <summary>
+        /// Definir nodos os ponteiros dos nodos ativos para os próximos nodos ativos
+        /// </summary>
+        /// <param name="nodes">lista de nodos do anel</param>
         static void DefineActiveNodes(List<Node> nodes)
         {
             foreach (Node node in nodes)
             {
                 if (node.Status)
                 {
-                    node.NextActiveNode = DefineNextActiveNode(node);
-                    node.PreviousActiveNode = DefinePreviousActiveNode(node);
+                    node.NextActiveNode = node.DefineNextActiveNode();
+                    node.PreviousActiveNode = node.DefinePreviousActiveNode();
                 }
             }
         }
-
+        /// <summary>
+        /// encontra em qual nodo um recurso está localizado
+        /// </summary>
+        /// <param name="value">recurso a ser buscado</param>
+        /// <param name="nodes">lista de nodos do anel</param>
+        /// <param name="numberNodes">numero de nodos do anel</param>
+        /// <returns>id do nodo onde o recurso está localizado</returns>
         static int FindResourceLocation(string value, List<Node> nodes, int numberNodes)
         {
             int id = 0;
@@ -184,7 +227,7 @@ namespace Chord
                 if (node.Status)
                 {
                     id = node.GetNodeReference(resource);
-                    if (id!=0)
+                    if (id != 0)
                     {
                         return id;
                     }
@@ -192,7 +235,13 @@ namespace Chord
             }
             return id;
         }
-
+        /// <summary>
+        /// encontra o recurso no nodo em que ele está localizado
+        /// </summary>
+        /// <param name="value">recurso a ser buscado</param>
+        /// <param name="nodes">lista de nodos do anel</param>
+        /// <param name="numberNodes"> numero de nodos do anel</param>
+        /// <returns>retorna o valor hash do recurso e e seu valor</returns>
         static (int, string) FindResource(string value, List<Node> nodes, int numberNodes)
         {
             int nodeId = FindResourceLocation(value, nodes, numberNodes);
@@ -200,54 +249,49 @@ namespace Chord
             if (nodeId != 0)
             {
                 Node node = nodes.Find(node => node.Id == nodeId);
-                foreach (var resource in node.Resource)
+                if (node!=null)
                 {
-                    if (resource.Key == value)
+                    foreach (var resource in node.Resource)
                     {
-                        return (resource.Value, resource.Key);
+                        if (resource.Key == value)
+                        {
+                            return (resource.Value, resource.Key);
+                        }
                     }
                 }
             }
             return (0, value);
         }
-
-        static Node DefineNextActiveNode(Node node)
-        {
-            if (node.NextNode != null && node.NextNode.Status)
-            {
-                return node.NextNode;
-            }
-            else if (node.NextNode != null)
-            {
-                return DefineNextActiveNode(node.NextNode);
-            }
-            return null;
-        }
- 
-        static Node DefinePreviousActiveNode(Node node)
-        {
-            if (node.PreviousNode != null && node.PreviousNode.Status)
-            {
-                return node.PreviousNode;
-            }
-            else if (node.NextNode != null)
-            {
-                return DefinePreviousActiveNode(node.PreviousNode);
-            }
-            return null;
-        }
-
+        /// <summary>
+        /// adiciona os recuros para os seus respectivos nodos, de acordo com o hash do recurso e id do nodo
+        /// </summary>
+        /// <param name="nodes">lista de nodos do anel</param>
+        /// <param name="resources">lista de recursos a serem distribuidos entre os nodos</param>
         static void DistributeResources(List<Node> nodes, List<Resource> resources)
         {
             foreach (Resource resource in resources)
             {
                 Node node = GetNodeById(resource.Hash, nodes);
-                node.AddResource(resource.Hash, resource.Value);
+                AddResource(node, resource.Hash, resource.Value);
                 //Console.WriteLine("ID: " + node.Id + 
                 //" Recurso: " + resource.Value + " Hash: " + resource.Hash);
             }
         }
+        /// <summary>
+        /// adiciona um recurso para um nodo
+        /// </summary>
+        /// <param name="node">nodo ao qual o recurso será adicionado</param>
+        /// <param name="hash">hash do recurso que também é o id do nodo ao qual o recurso será adicionado</param>
+        /// <param name="value">valor do recurso</param>
+        static void AddResource(Node node, int hash, string value)
+        {
+            node.AddResource(hash, value);
+        }
 
+        /// <summary>
+        /// Adiciona a lista de nodos que um nodo ativo é responsável por indexar a pesquisa
+        /// </summary>
+        /// <param name="nodes">lista de nodos do anel</param>
         static void GetNodesReferences(List<Node> nodes)
         {
             foreach (Node node in nodes)
@@ -259,19 +303,22 @@ namespace Chord
                 }
             }
         }
-
+        /// <summary>
+        /// retorna um nodo caso exista um com o id informado.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="nodes"></param>
+        /// <returns></returns>
         static Node GetNodeById(int id, List<Node> nodes)
         {
-            foreach (Node node in nodes)
-            {
-                if (node.Id == id)
-                {
-                    return node;
-                }
-            }
-            return null;
+            return nodes.Find(node => node.Id == id);
         }
-
+        /// <summary>
+        /// preenche uma lista com os recursos, incluindo seu valor e hash
+        /// </summary>
+        /// <param name="vect">vetor de valores de recursos</param>
+        /// <param name="numberNodes">numero de nodos do anel</param>
+        /// <returns>retorna a lista de recursos, com o valor e hash do recurso</returns>
         static List<Resource> FillResourcesDictionary(string[] vect, int numberNodes)
         {
             List<Resource> resources = new List<Resource>();

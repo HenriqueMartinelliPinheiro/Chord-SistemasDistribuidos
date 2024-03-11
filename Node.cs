@@ -30,30 +30,48 @@ namespace Chord
             PreviousActiveNode = null;
             NextActiveNode = null;
         }
-
+        /// <summary>
+        /// adiciona recurso ao nodo
+        /// </summary>
+        /// <param name="hash">hash do recurso</param>
+        /// <param name="resource">valor do recursos</param>
         public void AddResource(int hash, string resource)
         {
             Resource.Add(resource, hash);
         }
 
+        /// <summary>
+        /// adiciona uma referencia a um nodo pelo qual o nodo ativo é reposnável
+        /// </summary>
+        /// <param name="node">nodo a ser referenciado</param>
         public void AddNodeReferencence(Node node)
         {
             NodeReference.Add(node);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nodeReference">lista de nodos pelos quais o nodo ativo é reposnável</param>
+        /// <returns> mapeia os nodos pelo qual o nodo ativo atual é reponsável</returns>
         public List<Node> GetPreviousNodeReference(List<Node> nodeReference)
         {
             if (this != null && !Status)
             {
-                if (this.PreviousNode!=null)
+                if (PreviousNode!=null)
                 {
-                    nodeReference = this.PreviousNode.GetPreviousNodeReference(nodeReference);
+                    nodeReference = PreviousNode.GetPreviousNodeReference(nodeReference);
                 }
                 nodeReference.Add(this);
             }
             return nodeReference;
         }
 
+        /// <summary>
+        /// verifica se o nodo atual é responsável pelo nodo que contém o recurso procurado
+        /// </summary>
+        /// <param name="resource">recurso a ser procurado</param>
+        /// <returns>id do nodo que contém o recurso</returns>
         public int GetNodeReference(Resource resource)
         {
             foreach (Node nodeReference in NodeReference)
@@ -66,13 +84,38 @@ namespace Chord
             return 0;
         }
 
-        public void GetNodesReference()
+        /// <summary>
+        /// define o próximo nodo ativo de um nodo ativo
+        /// </summary>
+        /// <returns>retorna o próximo nodo ativo do nodo ativo atual</returns>
+        public Node DefineNextActiveNode()
         {
-            if (Status && PreviousNode != null)
+            if (NextNode != null && NextNode.Status)
             {
-                AddNodeReferencence(this);
-                NodeReference =PreviousNode.GetPreviousNodeReference(NodeReference);
+                return NextNode;
             }
+            else if (NextNode != null)
+            {
+                return NextNode.DefineNextActiveNode();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// deine o nodo ativo anterior do nodo atual
+        /// </summary>
+        /// <returns>retorna o nodo ativo anterior do nodo atual</returns>
+        public Node DefinePreviousActiveNode()
+        {
+            if (PreviousNode != null && PreviousNode.Status)
+            {
+                return PreviousNode;
+            }
+            else if (NextNode != null)
+            {
+                return PreviousNode.DefinePreviousActiveNode();
+            }
+            return null;
         }
     }
 }

@@ -17,6 +17,12 @@ namespace Chord
             Hash = GetHash(value, numberNodes);
         }
 
+        /// <summary>
+        /// gera o código hash baseado no valor do recurso e do número de nodos do anel
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="numberNodes"></param>
+        /// <returns></returns>
         public static int GetHash(string value, int numberNodes)
         {
             int h = 0;
