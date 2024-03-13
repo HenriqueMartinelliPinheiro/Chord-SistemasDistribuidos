@@ -32,13 +32,23 @@ namespace Chord
                     Console.WriteLine("Anterior Nodo Ativo ID:" + node.PreviousActiveNode.Id);
                 }
                 Console.WriteLine("\n\n");
+
+                if (node.Status)
+                {
+                    Console.WriteLine("ID: " + node.Id);
+                    foreach (Node nodeReference in node.NodeReference)
+                    {
+                        Console.WriteLine("ID Referencia: " + nodeReference.Id);
+                    }
+                }
+                Console.WriteLine("\n\n");
             }
         }
-       /// <summary>
-       /// exibir interface
-       /// </summary>
-       /// <param name="nodes">lista de nodos do anel</param>
-       /// <param name="numberNodes">numero de nodos do anel</param>
+        /// <summary>
+        /// exibir interface
+        /// </summary>
+        /// <param name="nodes">lista de nodos do anel</param>
+        /// <param name="numberNodes">numero de nodos do anel</param>
         static void Menu(List<Node> nodes, int numberNodes)
         {
             int op = -1;
@@ -56,7 +66,7 @@ namespace Chord
                     case 1:
                         Console.WriteLine("Digite o recurso: ");
                         string value = Console.ReadLine();
-                        if (value!=null)
+                        if (value != null)
                         {
                             (int id, value) = FindResource(value, nodes, numberNodes);
 
@@ -90,7 +100,7 @@ namespace Chord
                     case 4:
                         Console.WriteLine("Digite o recurso a ser inserido.");
                         string addedValue = Console.ReadLine();
-                        if (addedValue!=null)
+                        if (addedValue != null)
                         {
                             Resource resource = new Resource(addedValue, numberNodes);
                             AddResource(GetNodeById(resource.Hash, nodes), resource.Hash, addedValue);
@@ -115,9 +125,24 @@ namespace Chord
             if (node != null)
             {
                 node.Status = false;
+                if (node.NextActiveNode!=null)
+                {
+                    node.NextActiveNode.PreviousActiveNode = node.PreviousActiveNode;
+                }
+
+                if (node.PreviousActiveNode!=null)
+                {
+                    node.PreviousActiveNode.NextActiveNode = node.NextActiveNode;
+                }
+                
+                foreach (Node nodeReference in node.NodeReference)
+                {
+                    node.NextActiveNode.AddNodeReferencence(nodeReference);
+                }
                 node.NextActiveNode = null;
                 node.PreviousActiveNode = null;
-                DefineActiveNodes(nodes);
+
+                //DefineActiveNodes(nodes);
             }
         }
         /// <summary>
@@ -133,7 +158,6 @@ namespace Chord
                 node.Status = true;
                 DefineActiveNodes(nodes);
             }
-            
         }
 
         /// <summary>
@@ -249,7 +273,7 @@ namespace Chord
             if (nodeId != 0)
             {
                 Node node = nodes.Find(node => node.Id == nodeId);
-                if (node!=null)
+                if (node != null)
                 {
                     foreach (var resource in node.Resource)
                     {
